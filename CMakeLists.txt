@@ -65,3 +65,29 @@ target_include_directories(grpc_client PRIVATE "${API_GENERATED_DIR}")
 
 target_link_libraries(grpc_client
   gRPC::grpc++ gRPC::grpc++_reflection)
+
+add_executable(tests
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
+)
+
+target_link_libraries(tests GTest::gtest_main)
+
+enable_testing()
+add_test(NAME unit_tests COMMAND tests)
+
+if(BUILD_COVERAGE)
+  function(ENABLE_PROJECT_COVERAGE PROJECT)
+    target_compile_options(${PROJECT} PRIVATE --coverage)
+    target_link_libraries(${PROJECT} --coverage)
+    add_coverage(${PROJECT})
+  endfunction()
+
+  set(ENABLE_COVERAGE ON CACHE BOOL "Enable coverage build." FORCE)
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+  find_package(codecov)
+  # TODO: change template word to project name and delete this comment
+
+  enable_project_coverage(tests)
+  list(APPEND LCOV_REMOVE_PATTERNS "'${PROJECT_SOURCE_DIR}/tests/*'")
+  coverage_evaluate()
+endif()
