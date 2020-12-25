@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <exception>
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
@@ -16,13 +17,16 @@ using suggest::SuggestResponse;
 using suggest::Suggest;
 
 int main(int argc, char** argv) {
-
+  if (argc < 2) {
+	  std::invalid_argument ex("too low arguments");
+	  throw ex;
+  }
   auto channel = grpc::CreateChannel("0.0.0.0:9090", grpc::InsecureChannelCredentials());
   auto client = Suggest::NewStub(channel);
   SuggestResponse response;
   ClientContext context;
   SuggestRequest request;
-  request.set_input("hel");
+  request.set_input(argv[1]);
   Status status = client->Input(&context, request, &response);
 
   if (status.ok()) {
